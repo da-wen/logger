@@ -1,5 +1,5 @@
 {
-    "name": "dawen/logger",
+    "name": "da-wen/logger",
     "description": "a logger for every size",
     "keywords": ["log", "logging", "psr-log"],
     "homepage": "http://github.com/da-wen/logger",
