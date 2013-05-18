@@ -233,6 +233,26 @@ class VerySimpleLoggerTest extends \PHPUnit_Framework_TestCase
         $this->deleteFile(self::TEST_FILE);
     }
 
+    public function testNullResource()
+    {
+        $_sLogString = 'testing';
+
+        $_oLogger = $this->createLogger(
+            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
+            null);
+
+        $_oException = null;
+        try
+        {
+            $_oLogger->log(\Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG, $_sLogString);
+        }
+        catch(\Exception $_oException)
+        {
+            //do nothing
+        }
+        $this->assertInstanceOf('\UnexpectedValueException',$_oException);
+    }
+
     public function testLogLevelEmergency()
     {
         $_sLogString = 'testing';
