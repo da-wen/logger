@@ -101,9 +101,9 @@ class VerySimplePsrLogger extends AbstractLogger
 
         $_sLine = '['.$_oDate->format($this->sDateTimeFormat).'] '.$this->sName.'.'.$sLevel.': ';
         $_sLine .= $sMessage;
-        if(!empty($context))
+        if(!empty($aContext))
         {
-            $_sLine .= ' with context: '.json_encode($aContext);
+            $_sLine .= ' [context: '.json_encode($aContext).']';
         }
         $_sLine .= PHP_EOL;
 

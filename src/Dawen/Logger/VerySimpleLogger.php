@@ -184,7 +184,7 @@ class VerySimpleLogger implements LoggerInterface
         $_sLine .= $sMessage;
         if(!empty($aContext))
         {
-            $_sLine .= ' with context: '.json_encode($aContext);
+            $_sLine .= ' [context: '.json_encode($aContext).']';
         }
         $_sLine .= PHP_EOL;
 
