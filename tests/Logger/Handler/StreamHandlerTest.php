@@ -12,9 +12,13 @@ class StreamHandlerTest extends \PHPUnit_Framework_TestCase
     const TEST_PATH = '/tmp';
     const TEST_FILE = '/DawenHandlerUnitTest.log';
 
+    const LEVEL_DEBUG = 100;
+    const LEVEL_ERROR = 400;
+
+    /** @var null|\Dawen\Logger\Handler\StreamHandler */
     private $oLogger = null;
 
-    private function createHandler($sFileName, $sTimeStampFormat = null)
+    private function createHandler($iLevel = self::LEVEL_DEBUG,$sFileName, $sTimeStampFormat = null)
     {
         if(!is_writable(self::TEST_PATH))
         {
@@ -24,6 +28,7 @@ class StreamHandlerTest extends \PHPUnit_Framework_TestCase
         $_sFilePath = self::TEST_PATH.$sFileName;
 
         return new \Dawen\Logger\Handler\StreamHandler(
+            $iLevel,
             $_sFilePath,
             $sTimeStampFormat);
     }
@@ -40,7 +45,7 @@ class StreamHandlerTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         parent::setUp();
-        $this->oLogger = $this->createHandler(self::TEST_FILE);
+        $this->oLogger = $this->createHandler(self::LEVEL_ERROR, self::TEST_FILE);
     }
 
     protected function tearDown()
@@ -52,6 +57,68 @@ class StreamHandlerTest extends \PHPUnit_Framework_TestCase
     public function testInstance()
     {
         $this->assertInstanceOf('Dawen\Logger\Handler\HandlerInterface',$this->oLogger);
+    }
+
+    public function testWrongHandleParam()
+    {
+        $_iData = 100;
+        try
+        {
+            $_bHandle = $this->oLogger->handle($_iData);
+        }
+        catch(\Exception $_oException)
+        {
+            return;
+        }
+
+       $this->fail('An expected Exeption has not been raised.');
+    }
+
+    public function testMissingParams()
+    {
+        try
+        {
+            $_aData = array('iLevelss' => self::LEVEL_DEBUG);
+            $_bHandle = $this->oLogger->handle($_aData);
+        }
+        catch(\Exception $_oException)
+        {
+            return;
+        }
+
+        $this->fail('An expected Exeption has not been raised. Missing parameters');
+    }
+
+
+    public function testLevelError()
+    {
+        $_aData = array('iLevel' => self::LEVEL_DEBUG);
+        $_bHandle = $this->oLogger->handle($_aData);
+        $this->assertFalse($_bHandle);
+    }
+
+    public function testNullResource()
+    {
+        $_sLogString = 'testing';
+
+        $_oLogger = $this->createHandler(
+            self::LEVEL_DEBUG,
+            null);
+
+        $_aData = array(
+            'iLevel' => self::LEVEL_DEBUG
+        );
+
+        $_oException = null;
+        try
+        {
+            $_oLogger->handle($_aData);
+        }
+        catch(\Exception $_oException)
+        {
+            //do nothing
+        }
+        $this->assertInstanceOf('\UnexpectedValueException',$_oException);
     }
 
 }
