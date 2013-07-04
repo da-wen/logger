@@ -84,10 +84,12 @@ class StreamHandler implements HandlerInterface
 
         $_sLine = '['.$_oDate->format($this->sDateTimeFormat).'] '.$aEntry['sLoggerName'].'.'.$aEntry['sLevel'].': ';
         $_sLine .= $aEntry['sMessage'];
+        $_sContext = '';
         if(!empty($aEntry['aContext']))
         {
-            $_sLine .= ' [context: '.json_encode($aEntry['aContext']).']';
+            $_sContext = json_encode($aEntry['aContext']);
         }
+        $_sLine .= ' ['.$_sContext.']';
         $_sLine .= PHP_EOL;
 
         return $_sLine;

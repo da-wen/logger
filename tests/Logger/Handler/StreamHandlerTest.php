@@ -121,4 +121,33 @@ class StreamHandlerTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('\UnexpectedValueException',$_oException);
     }
 
+    public function testWrite()
+    {
+        $_aData = array(
+            'iLevel' => self::LEVEL_ERROR,
+            'sLevel' => 'debug',
+            'sLoggerName' => 'handlertest',
+            'sMessage' => 'this is a debug message',
+            'aContext' => array(
+                    'var1' => 'val1',
+                    'var2' => 2
+                )
+        );
+        $_bHandled = $this->oLogger->handle($_aData);
+        $this->assertTrue($_bHandled);
+
+        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
+        $_aContents = array();
+        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
+            $_aContents[] = $_sBuffer;
+        }
+        fclose($_rHandle);
+
+        $this->assertCount(1,$_aContents);
+        $this->assertContains($_aData['sLoggerName'].'.'.$_aData['sLevel'], $_aContents[0]);
+        $this->assertContains($_aData['sMessage'], $_aContents[0]);
+        $this->assertContains('['.json_encode($_aData['aContext']).']', $_aContents[0]);
+
+    }
+
 }
