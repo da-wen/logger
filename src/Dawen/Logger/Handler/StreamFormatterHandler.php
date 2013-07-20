@@ -4,7 +4,7 @@ namespace Dawen\Logger\Handler;
 use Dawen\Logger\Formatter\LineFormatter;
 use Dawen\Logger\Formatter\FormatterInterface;
 
-class StreamFormatterHandler implements HandlerFormatterInterface
+class StreamFormatterHandler implements HandlerInterface, HandlerFormatterInterface
 {
 
     /**
@@ -27,13 +27,6 @@ class StreamFormatterHandler implements HandlerFormatterInterface
     private $sFilePath = null;
 
     /**
-     * dateformat for log entry
-     *
-     * @var string
-     */
-    private $sDateTimeFormat = null;
-
-    /**
      * @var null
      */
     private $oFormatter = null;
@@ -45,11 +38,10 @@ class StreamFormatterHandler implements HandlerFormatterInterface
      */
     private $rStream = null;
 
-    public function __construct($iLogLevel, $sFilePath, $sDateTimeFormat = null)
+    public function __construct($iLogLevel, $sFilePath)
     {
         $this->iLogLevel  = $iLogLevel;
         $this->sFilePath = $sFilePath;
-        $this->sDateTimeFormat =  (null !== $sDateTimeFormat) ? $sDateTimeFormat : self::DATETIME_FORMAT;
     }
 
     /**
@@ -80,9 +72,6 @@ class StreamFormatterHandler implements HandlerFormatterInterface
         {
             return false;
         }
-
-        $_oDateTime = new \DateTime();
-        $aEntry['sTimestamp'] = $_oDateTime->format($this->sDateTimeFormat);
 
         $_sErrorMessage = null;
         set_error_handler(function ($mCode, $sMsg) use (&$_sErrorMessage) {

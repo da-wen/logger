@@ -14,14 +14,6 @@ interface HandlerFormatterInterface
     public function getFormatter();
 
     /**
-     * handles an entry and returns true or false
-     *
-     * @param array $aEntry
-     * @return bool
-     */
-    public function handle(array $aEntry);
-
-    /**
      * sets the formatter
      *
      * @param FormatterInterface $oFormatter

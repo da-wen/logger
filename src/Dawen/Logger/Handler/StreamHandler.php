@@ -73,16 +73,17 @@ class StreamHandler implements HandlerInterface
     /**
      * formats the log entry and returns the line.
      *
-     * @param string $sLevel
-     * @param string $sMessage
-     * @param array $aContext
+     * @param array $aEntry
+     * @internal param string $sLevel
+     * @internal param string $sMessage
+     * @internal param array $aContext
      * @return string
      */
     private function format(array $aEntry)
     {
         $_oDate = new \DateTime();
 
-        $_sLine = '['.$_oDate->format($this->sDateTimeFormat).'] '.$aEntry['sLoggerName'].'.'.$aEntry['sLevel'].': ';
+        $_sLine = '['.$aEntry['sTimestamp'].'] '.$aEntry['sLoggerName'].'.'.$aEntry['sLevel'].': ';
         $_sLine .= $aEntry['sMessage'];
         $_sContext = '';
         if(!empty($aEntry['aContext']))
@@ -90,6 +91,13 @@ class StreamHandler implements HandlerInterface
             $_sContext = json_encode($aEntry['aContext']);
         }
         $_sLine .= ' ['.$_sContext.']';
+
+        $_sExtra = '';
+        if(!empty($aEntry['aExtra']))
+        {
+            $_sExtra = json_encode($aEntry['aExtra']);
+        }
+        $_sLine .= ' ['.$_sExtra.']';
         $_sLine .= PHP_EOL;
 
         return $_sLine;

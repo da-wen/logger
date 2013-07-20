@@ -18,7 +18,7 @@ class StreamHandlerTest extends \PHPUnit_Framework_TestCase
     /** @var null|\Dawen\Logger\Handler\StreamHandler */
     private $oLogger = null;
 
-    private function createHandler($iLevel = self::LEVEL_DEBUG,$sFileName, $sTimeStampFormat = null)
+    private function createHandler($iLevel = self::LEVEL_DEBUG,$sFileName)
     {
         if(!is_writable(self::TEST_PATH))
         {
@@ -29,8 +29,7 @@ class StreamHandlerTest extends \PHPUnit_Framework_TestCase
 
         return new \Dawen\Logger\Handler\StreamHandler(
             $iLevel,
-            $_sFilePath,
-            $sTimeStampFormat);
+            $_sFilePath);
     }
 
     private function deleteFile($sFileName)
@@ -92,7 +91,7 @@ class StreamHandlerTest extends \PHPUnit_Framework_TestCase
 
     public function testLevelError()
     {
-        $_aData = array('iLevel' => self::LEVEL_DEBUG);
+        $_aData = array('iLevel' => self::LEVEL_DEBUG, 'sTimestamp' => date('Y-m-d H:i:s'));
         $_bHandle = $this->oLogger->handle($_aData);
         $this->assertFalse($_bHandle);
     }
@@ -106,7 +105,8 @@ class StreamHandlerTest extends \PHPUnit_Framework_TestCase
             null);
 
         $_aData = array(
-            'iLevel' => self::LEVEL_DEBUG
+            'iLevel' => self::LEVEL_DEBUG,
+            'sTimestamp' => date('Y-m-d H:i:s')
         );
 
         $_oException = null;
@@ -125,6 +125,7 @@ class StreamHandlerTest extends \PHPUnit_Framework_TestCase
     {
         $_aData = array(
             'iLevel' => self::LEVEL_ERROR,
+            'sTimestamp' => date('Y-m-d H:i:s'),
             'sLevel' => 'debug',
             'sLoggerName' => 'handlertest',
             'sMessage' => 'this is a debug message',
@@ -154,6 +155,7 @@ class StreamHandlerTest extends \PHPUnit_Framework_TestCase
     {
         $_aData = array(
             'iLevel' => self::LEVEL_ERROR,
+            'sTimestamp' => date('Ymd His'),
             'sLevel' => 'debug',
             'sLoggerName' => 'handlertest',
             'sMessage' => 'this is a debug message',
@@ -162,8 +164,7 @@ class StreamHandlerTest extends \PHPUnit_Framework_TestCase
                 'var2' => 2
             )
         );
-        $_sTimeStampFormat = 'YmdHis';
-        $_oHandler = $this->createHandler(self::LEVEL_DEBUG, self::TEST_FILE, $_sTimeStampFormat);
+        $_oHandler = $this->createHandler(self::LEVEL_DEBUG, self::TEST_FILE);
         $_bHandled = $_oHandler->handle($_aData);
         $this->assertTrue($_bHandled);
 
@@ -177,7 +178,7 @@ class StreamHandlerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertCount(1,$_aContents);
         $this->assertContains($_aData['sLoggerName'].'.'.$_aData['sLevel'], $_aContents[0]);
-        $this->assertContains('[' . date('YmdHi'), $_aContents[0]);
+        $this->assertContains('[' . $_aData['sTimestamp'].']', $_aContents[0]);
         $this->assertContains($_aData['sMessage'], $_aContents[0]);
         $this->assertContains('['.json_encode($_aData['aContext']).']', $_aContents[0]);
 
