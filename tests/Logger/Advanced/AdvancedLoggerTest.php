@@ -122,6 +122,36 @@ class AdvancedSimpleLoggerTest extends \PHPUnit_Framework_TestCase
         $this->deleteFile(self::TEST_FILE);
     }
 
+    public function testGetLogger()
+    {
+        $_oLogger = $this->createLogger(
+                Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
+                self::TEST_FILE);
+
+        $_oHandler = $_oLogger->getHandler();
+
+        $this->assertInstanceOf('Dawen\Logger\Handler\HandlerInterface', $_oHandler);
+        //$this->assertInstanceOf('Dawen\Logger\Hndler\Interface', $_oHandler);
+    }
+
+    public function testSetLogger()
+    {
+        $_oLogger = $this->createLogger(
+            Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
+            self::TEST_FILE);
+
+
+        $_oHandler = new \Dawen\Logger\Handler\StreamFormatterHandler(
+                    Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
+                    self::TEST_FILE);
+
+        $_oLogger->setHandler($_oHandler);
+        $_oHandlerInstance = $_oLogger->getHandler();
+
+        $this->assertInstanceOf('Dawen\Logger\Handler\HandlerInterface', $_oHandlerInstance);
+        $this->assertInstanceOf('Dawen\Logger\Handler\HandlerFormatterInterface', $_oHandlerInstance);
+    }
+
 //    public function testDateTimeFormatDefault()
 //    {
 //        $_sLogString = 'testing';

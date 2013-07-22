@@ -164,6 +164,16 @@ class AdvancedLogger implements LoggerInterface
     }
 
     /**
+     * gets handler instance
+     *
+     * @return HandlerInterface|null
+     */
+    public function getHandler()
+    {
+        return $this->oHandler;
+    }
+
+    /**
      * sets handler
      *
      * @param HandlerInterface $oHandler
@@ -172,8 +182,6 @@ class AdvancedLogger implements LoggerInterface
     {
         $this->oHandler = $oHandler;
     }
-
-
 
     /**
      * writes message to file (appending)

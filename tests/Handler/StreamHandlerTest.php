@@ -132,7 +132,11 @@ class StreamHandlerTest extends \PHPUnit_Framework_TestCase
             'aContext' => array(
                     'var1' => 'val1',
                     'var2' => 2
-                )
+                ),
+            'aExtra' => array(
+                'exrta1' => 'extra1',
+                'extra2' => 2
+            ),
         );
         $_bHandled = $this->oLogger->handle($_aData);
         $this->assertTrue($_bHandled);
@@ -148,6 +152,7 @@ class StreamHandlerTest extends \PHPUnit_Framework_TestCase
         $this->assertContains($_aData['sLoggerName'].'.'.$_aData['sLevel'], $_aContents[0]);
         $this->assertContains($_aData['sMessage'], $_aContents[0]);
         $this->assertContains('['.json_encode($_aData['aContext']).']', $_aContents[0]);
+        $this->assertContains('['.json_encode($_aData['aExtra']).']', $_aContents[0]);
 
     }
 
