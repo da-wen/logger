@@ -7,7 +7,7 @@
  * To change this template use File | Settings | File Templates.
  */
 
-class AdvancedSimpleLoggerTest extends \PHPUnit_Framework_TestCase
+class AdvancedLoggerTest extends \PHPUnit_Framework_TestCase
 {
     const TEST_PATH = '/tmp';
     const TEST_FILE = '/DawenAdvancedLoggerUnitTest.log';
@@ -96,7 +96,7 @@ class AdvancedSimpleLoggerTest extends \PHPUnit_Framework_TestCase
         fclose($_rHandle);
 
         $this->assertCount(1,$_aContents);
-        $this->assertNotEmpty(strpos($_aContents[0],self::LOGGER_NAME.'.'));
+        $this->assertContains(self::LOGGER_NAME.'.', $_aContents[0]);
 
         $this->deleteFile(self::TEST_FILE);
     }
