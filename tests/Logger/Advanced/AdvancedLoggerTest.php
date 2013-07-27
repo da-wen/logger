@@ -478,7 +478,7 @@ class AdvancedSimpleLoggerTest extends \PHPUnit_Framework_TestCase
             \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
             self::TEST_FILE);
 
-        $_bResult = $_oLogger->emerg    (
+        $_bResult = $_oLogger->emerg(
             $_sLogString,
             $this->aContext,
             $this->aExtra);
