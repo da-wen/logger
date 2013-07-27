@@ -84,83 +84,145 @@ class AdvancedLogger implements LoggerInterface
     }
 
     /**
-     * @inheritdoc
+     * Logs with an arbitrary level.
+     *
+     * @param mixed $ievel
+     * @param string $sMessage
+     * @param array $aContext
+     * @param array $aExtra
+     * @return bool|null
      */
-    public function log($level, $message, array $context = array())
+    public function log($ievel, $sMessage, array $aContext = array(), array $aExtra = array())
     {
-        return $this->writeEntry($level,$message,$context);
+        return $this->writeEntry($ievel, $sMessage, $aContext, $aExtra);
     }
 
     /**
-     * @inheritdoc
+     * Action must be taken immediately.
+     *
+     * Example: Entire website down, database unavailable, etc. This should
+     * trigger the SMS alerts and wake you up.
+     *
+     * @param string $sMessage
+     * @param array $aContext
+     * @param array $aExtra
+     * @return bool|null
      */
-    public function alert($message, array $context = array())
+    public function alert($sMessage, array $aContext = array(), array $aExtra = array())
     {
-        return $this->writeEntry(self::LEVEL_ALERT,$message,$context);
+        return $this->writeEntry(self::LEVEL_ALERT, $sMessage, $aContext, $aExtra);
     }
 
     /**
-     * @inheritdoc
+     * Critical conditions.
+     *
+     * Example: Application component unavailable, unexpected exception.
+     *
+     * @param string $sMessage
+     * @param array $aContext
+     * @param array $aExtra
+     * @return bool|null
      */
-    public function critical($message, array $context = array())
+    public function critical($sMessage, array $aContext = array(), array $aExtra = array())
     {
-        return $this->writeEntry(self::LEVEL_CRITICAL,$message,$context);
+        return $this->writeEntry(self::LEVEL_CRITICAL, $sMessage, $aContext, $aExtra);
     }
 
     /**
-     * @inheritdoc
+     * Detailed debug information.
+     *
+     * @param string $sMessage
+     * @param array $aContext
+     * @param array $aExtra
+     * @return bool|null
      */
-    public function debug($message, array $context = array())
+    public function debug($sMessage, array $aContext = array(), array $aExtra = array())
     {
-        return $this->writeEntry(self::LEVEL_DEBUG,$message,$context);
+        return $this->writeEntry(self::LEVEL_DEBUG, $sMessage, $aContext, $aExtra);
     }
 
     /**
-     * @inheritdoc
+     * Runtime errors that do not require immediate action but should typically
+     * be logged and monitored.
+     *
+     * @param string $sMessage
+     * @param array $aContext
+     * @param array $aExtra
+     * @return bool|null
      */
-    public function error($message, array $context = array())
+    public function error($sMessage, array $aContext = array(), array $aExtra = array())
     {
-        return $this->writeEntry(self::LEVEL_ERROR,$message,$context);
+        return $this->writeEntry(self::LEVEL_ERROR, $sMessage, $aContext, $aExtra);
     }
 
     /**
-     * @inheritdoc
+     * Interesting events.
+     *
+     * Example: User logs in, SQL logs.
+     *
+     * @param string $sMessage
+     * @param array $aContext
+     * @param array $aExtra
+     * @return bool|null
      */
-    public function info($message, array $context = array())
+    public function info($sMessage, array $aContext = array(), array $aExtra = array())
     {
-        return $this->writeEntry(self::LEVEL_INFO,$message,$context);
+        return $this->writeEntry(self::LEVEL_INFO, $sMessage, $aContext, $aExtra);
     }
 
     /**
-     * @inheritdoc
+     * Normal but significant events.
+     *
+     * @param string $sMessage
+     * @param array $aContext
+     * @param array $aExtra
+     * @return bool|null
      */
-    public function notice($message, array $context = array())
+    public function notice($sMessage, array $aContext = array(), array $aExtra = array())
     {
-        return $this->writeEntry(self::LEVEL_NOTICE,$message,$context);
+        return $this->writeEntry(self::LEVEL_NOTICE, $sMessage, $aContext, $aExtra);
     }
 
     /**
-     * @inheritdoc
+     * Exceptional occurrences that are not errors.
+     *
+     * Example: Use of deprecated APIs, poor use of an API, undesirable things
+     * that are not necessarily wrong.
+     *
+     * @param string $sMessage
+     * @param array $aContext
+     * @param array $aExtra
+     * @return bool|null
      */
-    public function warning($message, array $context = array())
+    public function warning($sMessage, array $aContext = array(), array $aExtra = array())
     {
-        return $this->writeEntry(self::LEVEL_WARNING,$message,$context);
+        return $this->writeEntry(self::LEVEL_WARNING, $sMessage, $aContext, $aExtra);
     }
 
     /**
-     * @inheritdoc
+     * System is unusable.
+     *
+     * @param $sMessage
+     * @param array $aContext
+     * @param array $aExtra
+     * @return bool
      */
-    public function emerg($message, array $context = array())
+    public function emerg($sMessage, array $aContext = array(), array $aExtra = array())
     {
-        return $this->writeEntry(self::LEVEL_EMERGENCY,$message,$context);
+        return $this->writeEntry(self::LEVEL_EMERGENCY, $sMessage, $aContext, $aExtra);
     }
 
     /**
-     * @inheritdoc
+     * System is unusable.
+     *
+     * @param string $sMessage
+     * @param array $aContext
+     * @param array $aExtra
+     * @return bool|null
      */
-    public function emergency($message, array $context = array())
+    public function emergency($sMessage, array $aContext = array(), array $aExtra = array())
     {
-        return $this->writeEntry(self::LEVEL_EMERGENCY,$message,$context);
+        return $this->writeEntry(self::LEVEL_EMERGENCY, $sMessage, $aContext, $aExtra);
     }
 
     /**

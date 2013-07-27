@@ -14,15 +14,18 @@ class AdvancedSimpleLoggerTest extends \PHPUnit_Framework_TestCase
     const LOGGER_NAME = 'UnitTestLogger';
 
     private $aLevels = array(
-        \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG     => 'DEBUG',
-        \Dawen\Logger\VerySimpleLogger::LEVEL_INFO      => 'INFO',
-        \Dawen\Logger\VerySimpleLogger::LEVEL_NOTICE    => 'NOTICE',
-        \Dawen\Logger\VerySimpleLogger::LEVEL_WARNING   => 'WARNING',
-        \Dawen\Logger\VerySimpleLogger::LEVEL_ERROR     => 'ERROR',
-        \Dawen\Logger\VerySimpleLogger::LEVEL_CRITICAL  => 'CRITICAL',
-        \Dawen\Logger\VerySimpleLogger::LEVEL_ALERT     => 'ALERT',
-        \Dawen\Logger\VerySimpleLogger::LEVEL_EMERGENCY => 'EMERGENCY',
+        \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG     => 'DEBUG',
+        \Dawen\Logger\AdvancedLogger::LEVEL_INFO      => 'INFO',
+        \Dawen\Logger\AdvancedLogger::LEVEL_NOTICE    => 'NOTICE',
+        \Dawen\Logger\AdvancedLogger::LEVEL_WARNING   => 'WARNING',
+        \Dawen\Logger\AdvancedLogger::LEVEL_ERROR     => 'ERROR',
+        \Dawen\Logger\AdvancedLogger::LEVEL_CRITICAL  => 'CRITICAL',
+        \Dawen\Logger\AdvancedLogger::LEVEL_ALERT     => 'ALERT',
+        \Dawen\Logger\AdvancedLogger::LEVEL_EMERGENCY => 'EMERGENCY',
     );
+
+    private $aContext = array('context1' => 'val1', 'context2' => 2);
+    private $aExtra = array('extra1' => 'val1', 'extra2' => 2);
 
     private function createLogger($iLogLevel,$sFileName, $sTimeStampFormat = null, $bWithHandler = true)
     {
@@ -55,7 +58,7 @@ class AdvancedSimpleLoggerTest extends \PHPUnit_Framework_TestCase
     public function testInstance()
     {
         $_oLogger = $this->createLogger(
-            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
+            \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
             self::TEST_FILE);
 
         $this->assertInstanceOf('Psr\Log\LoggerInterface',$_oLogger);
@@ -66,7 +69,7 @@ class AdvancedSimpleLoggerTest extends \PHPUnit_Framework_TestCase
     public function testFile()
     {
         $_oLogger = $this->createLogger(
-            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
+            \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
             self::TEST_FILE);
 
         $_oLogger->debug('testing');
@@ -80,10 +83,10 @@ class AdvancedSimpleLoggerTest extends \PHPUnit_Framework_TestCase
         $_sLogString = 'testing';
 
         $_oLogger = $this->createLogger(
-            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
+            \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
             self::TEST_FILE);
 
-        $_oLogger->log(\Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG, $_sLogString);
+        $_oLogger->log(\Dawen\Logger\AdvancedLogger::LEVEL_DEBUG, $_sLogString);
 
         $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
         $_aContents = array();
@@ -101,12 +104,18 @@ class AdvancedSimpleLoggerTest extends \PHPUnit_Framework_TestCase
     public function testLog()
     {
         $_sLogString = 'testing';
+        $_iLevel = \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG;
+        $_sLevel = $this->aLevels[$_iLevel];
 
         $_oLogger = $this->createLogger(
-            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
+            \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
             self::TEST_FILE);
 
-        $_oLogger->log(\Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG, $_sLogString);
+        $_bResult = $_oLogger->log(
+                        $_iLevel,
+                        $_sLogString,
+                        $this->aContext,
+                        $this->aExtra);
 
         $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
         $_aContents = array();
@@ -115,9 +124,59 @@ class AdvancedSimpleLoggerTest extends \PHPUnit_Framework_TestCase
         }
         fclose($_rHandle);
 
+        $this->assertTrue($_bResult);
         $this->assertCount(1,$_aContents);
-        $this->assertNotEmpty(strpos($_aContents[0],'.DEBUG'));
-        $this->assertNotEmpty(strpos($_aContents[0],' '.$_sLogString));
+        $this->assertContains('.'.$_sLevel, $_aContents[0]);
+        $this->assertContains($_sLogString, $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aContext).']', $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aExtra).']', $_aContents[0]);
+
+        $this->deleteFile(self::TEST_FILE);
+    }
+
+    public function testLevel()
+    {
+        $_sLogString = 'testing';
+        $_iLevel = \Dawen\Logger\AdvancedLogger::LEVEL_ALERT;
+        $_sLevel = $this->aLevels[$_iLevel];
+
+        $_oLogger = $this->createLogger(
+            \Dawen\Logger\AdvancedLogger::LEVEL_ALERT,
+            self::TEST_FILE);
+
+        $_bResult1 = $_oLogger->log(
+            \Dawen\Logger\AdvancedLogger::LEVEL_ERROR,
+            $_sLogString,
+            $this->aContext,
+            $this->aExtra);
+
+        $_bResult2 = $_oLogger->log(
+            \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
+            $_sLogString,
+            $this->aContext,
+            $this->aExtra);
+
+        $_bResult = $_oLogger->log(
+            $_iLevel,
+            $_sLogString,
+            $this->aContext,
+            $this->aExtra);
+
+        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
+        $_aContents = array();
+        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
+            $_aContents[] = $_sBuffer;
+        }
+        fclose($_rHandle);
+
+        $this->assertTrue($_bResult);
+        $this->assertFalse($_bResult1);
+        $this->assertFalse($_bResult2);
+        $this->assertCount(1,$_aContents);
+        $this->assertContains('.'.$_sLevel, $_aContents[0]);
+        $this->assertContains($_sLogString, $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aContext).']', $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aExtra).']', $_aContents[0]);
 
         $this->deleteFile(self::TEST_FILE);
     }
@@ -125,7 +184,7 @@ class AdvancedSimpleLoggerTest extends \PHPUnit_Framework_TestCase
     public function testGetLogger()
     {
         $_oLogger = $this->createLogger(
-                Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
+                Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
                 self::TEST_FILE);
 
         $_oHandler = $_oLogger->getHandler();
@@ -134,15 +193,16 @@ class AdvancedSimpleLoggerTest extends \PHPUnit_Framework_TestCase
         //$this->assertInstanceOf('Dawen\Logger\Hndler\Interface', $_oHandler);
     }
 
+
     public function testSetLogger()
     {
         $_oLogger = $this->createLogger(
-            Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
+            Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
             self::TEST_FILE);
 
 
         $_oHandler = new \Dawen\Logger\Handler\StreamFormatterHandler(
-                    Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
+                    Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
                     self::TEST_FILE);
 
         $_oLogger->setHandler($_oHandler);
@@ -152,425 +212,292 @@ class AdvancedSimpleLoggerTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Dawen\Logger\Handler\HandlerFormatterInterface', $_oHandlerInstance);
     }
 
-//    public function testDateTimeFormatDefault()
-//    {
-//        $_sLogString = 'testing';
-//
-//        $_oLogger = $this->createLogger(
-//            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
-//            self::TEST_FILE);
-//
-//        $_oLogger->log(\Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG, $_sLogString);
-//
-//        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
-//        $_aContents = array();
-//        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
-//            $_aContents[] = $_sBuffer;
-//        }
-//        fclose($_rHandle);
-//
-//        $this->assertCount(1,$_aContents);
-//
-//        $_iMatches = preg_match('/^\[(.*)\] .*/i',$_aContents[0], $_aMatches);
-//        $this->assertEquals(1,$_iMatches);
-//        $this->assertEquals($_aMatches[1],date('Y-m-d H:i:s',strtotime($_aMatches[1])));
-//        $this->assertEquals(19,strlen($_aMatches[1]));
-//
-//        $this->deleteFile(self::TEST_FILE);
-//
-//
-//    }
-//
-//    public function testDateTimeFormat()
-//    {
-//        $_sLogString = 'testing';
-//
-//        $_oLogger = $this->createLogger(
-//            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
-//            self::TEST_FILE,
-//            'YmdHis');
-//
-//        $_oLogger->log(\Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG, $_sLogString);
-//
-//        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
-//        $_aContents = array();
-//        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
-//            $_aContents[] = $_sBuffer;
-//        }
-//        fclose($_rHandle);
-//
-//        $this->assertCount(1,$_aContents);
-//
-//        $_iMatches = preg_match('/\[(.*)\] .*/i',$_aContents[0], $_aMatches);
-//        $this->assertTrue(is_int((int)$_aMatches[1]));
-//        $this->assertNotEmpty((int)$_aMatches[1]);
-//        $this->assertEquals(1,$_iMatches);
-//        $this->assertEquals($_aMatches[1],date('YmdHis',strtotime($_aMatches[1])));
-//        $this->assertEquals(14,strlen($_aMatches[1]));
-//
-//        $this->deleteFile(self::TEST_FILE);
-//    }
-//
-//    public function testMessage()
-//    {
-//        $_sLogString = 'testing';
-//        $_sLogString2 = 'testing2';
-//
-//        $_oLogger = $this->createLogger(
-//            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
-//            self::TEST_FILE,
-//            'YmdHis');
-//
-//        $_oLogger->log(\Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG, $_sLogString);
-//        $_oLogger->log(\Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG, $_sLogString2);
-//
-//        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
-//        $_aContents = array();
-//        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
-//            $_aContents[] = $_sBuffer;
-//        }
-//        fclose($_rHandle);
-//
-//        $this->assertCount(2,$_aContents);
-//        $this->assertNotEmpty(strpos($_aContents[0],' '.$_sLogString.PHP_EOL));
-//        $this->assertNotEmpty(strpos($_aContents[1],' '.$_sLogString2.PHP_EOL));
-//
-//        $this->deleteFile(self::TEST_FILE);
-//    }
-//
-//    public function testContext()
-//    {
-//        $_sLogString = 'testing';
-//        $_aContext = array('entry' => 'nothing', 'magic' => null);
-//
-//        $_oLogger = $this->createLogger(
-//            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
-//            self::TEST_FILE,
-//            'YmdHis');
-//
-//        $_oLogger->log(\Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG, $_sLogString,$_aContext);
-//
-//        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
-//        $_aContents = array();
-//        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
-//            $_aContents[] = $_sBuffer;
-//        }
-//        fclose($_rHandle);
-//
-//        $this->assertCount(1,$_aContents);
-//
-//        $_iMatches = preg_match('/\[context: (.*)\]/i',$_aContents[0], $_aMatches);
-//        $this->assertEquals(1,$_iMatches);
-//        $this->assertEquals($_aContext,json_decode($_aMatches[1],true));
-//
-//        $this->deleteFile(self::TEST_FILE);
-//    }
-//
-//    public function testNullResource()
-//    {
-//        $_sLogString = 'testing';
-//
-//        $_oLogger = $this->createLogger(
-//            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
-//            null);
-//
-//        $_oException = null;
-//        try
-//        {
-//            $_oLogger->log(\Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG, $_sLogString);
-//        }
-//        catch(\Exception $_oException)
-//        {
-//            //do nothing
-//        }
-//        $this->assertInstanceOf('\UnexpectedValueException',$_oException);
-//    }
-//
-//    public function testLogLevelEmergency()
-//    {
-//        $_sLogString = 'testing';
-//        $_iLogLevel = \Dawen\Logger\VerySimpleLogger::LEVEL_EMERGENCY;
-//
-//        $_oLogger = $this->createLogger(
-//            $_iLogLevel,
-//            self::TEST_FILE);
-//
-//        foreach($this->aLevels as $_iAddLevel => $_sAddLevelName)
-//        {
-//            $_oLogger->log($_iAddLevel, $_sLogString.' '.$_sAddLevelName);
-//        }
-//
-//        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
-//        $_aContents = array();
-//        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
-//            $_aContents[] = $_sBuffer;
-//        }
-//        fclose($_rHandle);
-//
-//        $this->assertCount(1,$_aContents);
-//        $this->assertNotEmpty(strpos($_aContents[0],'.'.$this->aLevels[$_iLogLevel]));
-//
-//        $this->deleteFile(self::TEST_FILE);
-//    }
-//
-//    public function testLogLevelError()
-//    {
-//        $_sLogString = 'testing';
-//        $_iLogLevel = \Dawen\Logger\VerySimpleLogger::LEVEL_ERROR;
-//
-//        $_oLogger = $this->createLogger(
-//            $_iLogLevel,
-//            self::TEST_FILE);
-//
-//        foreach($this->aLevels as $_iAddLevel => $_sAddLevelName)
-//        {
-//            $_oLogger->log($_iAddLevel, $_sLogString.' '.$_sAddLevelName);
-//        }
-//
-//        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
-//        $_aContents = array();
-//        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
-//            $_aContents[] = $_sBuffer;
-//        }
-//        fclose($_rHandle);
-//
-//        $this->assertCount(4,$_aContents);
-//        $this->assertNotEmpty(strpos($_aContents[0],'.'.$this->aLevels[$_iLogLevel]));
-//
-//        $this->deleteFile(self::TEST_FILE);
-//    }
-//
-//    public function testLogLevelInfo()
-//    {
-//        $_sLogString = 'testing';
-//        $_iLogLevel = \Dawen\Logger\VerySimpleLogger::LEVEL_INFO;
-//
-//        $_oLogger = $this->createLogger(
-//            $_iLogLevel,
-//            self::TEST_FILE);
-//
-//        foreach($this->aLevels as $_iAddLevel => $_sAddLevelName)
-//        {
-//            $_oLogger->log($_iAddLevel, $_sLogString.' '.$_sAddLevelName);
-//        }
-//
-//        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
-//        $_aContents = array();
-//        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
-//            $_aContents[] = $_sBuffer;
-//        }
-//        fclose($_rHandle);
-//
-//        $this->assertCount(7,$_aContents);
-//        $this->assertNotEmpty(strpos($_aContents[0],'.'.$this->aLevels[$_iLogLevel]));
-//
-//        $this->deleteFile(self::TEST_FILE);
-//    }
-//
-//    public function testDebug()
-//    {
-//        $_sLogString = 'testing';
-//
-//        $_oLogger = $this->createLogger(
-//            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
-//            self::TEST_FILE);
-//
-//        $_oLogger->debug($_sLogString);
-//
-//        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
-//        $_aContents = array();
-//        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
-//            $_aContents[] = $_sBuffer;
-//        }
-//        fclose($_rHandle);
-//
-//        $this->assertCount(1,$_aContents);
-//        $this->assertNotEmpty(strpos($_aContents[0],'.DEBUG'));
-//
-//        $this->deleteFile(self::TEST_FILE);
-//    }
-//
-//    public function testInfo()
-//    {
-//        $_sLogString = 'testing';
-//
-//        $_oLogger = $this->createLogger(
-//            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
-//            self::TEST_FILE);
-//
-//        $_oLogger->info($_sLogString);
-//
-//        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
-//        $_aContents = array();
-//        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
-//            $_aContents[] = $_sBuffer;
-//        }
-//        fclose($_rHandle);
-//
-//        $this->assertCount(1,$_aContents);
-//        $this->assertNotEmpty(strpos($_aContents[0],'.INFO'));
-//
-//        $this->deleteFile(self::TEST_FILE);
-//    }
-//
-//    public function testNotice()
-//    {
-//        $_sLogString = 'testing';
-//
-//        $_oLogger = $this->createLogger(
-//            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
-//            self::TEST_FILE);
-//
-//        $_oLogger->Notice($_sLogString);
-//
-//        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
-//        $_aContents = array();
-//        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
-//            $_aContents[] = $_sBuffer;
-//        }
-//        fclose($_rHandle);
-//
-//        $this->assertCount(1,$_aContents);
-//        $this->assertNotEmpty(strpos($_aContents[0],'.NOTICE'));
-//
-//        $this->deleteFile(self::TEST_FILE);
-//    }
-//
-//    public function testWarning()
-//    {
-//        $_sLogString = 'testing';
-//
-//        $_oLogger = $this->createLogger(
-//            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
-//            self::TEST_FILE);
-//
-//        $_oLogger->warning($_sLogString);
-//
-//        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
-//        $_aContents = array();
-//        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
-//            $_aContents[] = $_sBuffer;
-//        }
-//        fclose($_rHandle);
-//
-//        $this->assertCount(1,$_aContents);
-//        $this->assertNotEmpty(strpos($_aContents[0],'.WARNING'));
-//
-//        $this->deleteFile(self::TEST_FILE);
-//    }
-//
-//    public function testError()
-//    {
-//        $_sLogString = 'testing';
-//
-//        $_oLogger = $this->createLogger(
-//            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
-//            self::TEST_FILE);
-//
-//        $_oLogger->error($_sLogString);
-//
-//        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
-//        $_aContents = array();
-//        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
-//            $_aContents[] = $_sBuffer;
-//        }
-//        fclose($_rHandle);
-//
-//        $this->assertCount(1,$_aContents);
-//        $this->assertNotEmpty(strpos($_aContents[0],'.ERROR'));
-//
-//        $this->deleteFile(self::TEST_FILE);
-//    }
-//
-//    public function testCritical()
-//    {
-//        $_sLogString = 'testing';
-//
-//        $_oLogger = $this->createLogger(
-//            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
-//            self::TEST_FILE);
-//
-//        $_oLogger->critical($_sLogString);
-//
-//        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
-//        $_aContents = array();
-//        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
-//            $_aContents[] = $_sBuffer;
-//        }
-//        fclose($_rHandle);
-//
-//        $this->assertCount(1,$_aContents);
-//        $this->assertNotEmpty(strpos($_aContents[0],'.CRITICAL'));
-//
-//        $this->deleteFile(self::TEST_FILE);
-//    }
-//
-//    public function testAlert()
-//    {
-//        $_sLogString = 'testing';
-//
-//        $_oLogger = $this->createLogger(
-//            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
-//            self::TEST_FILE);
-//
-//        $_oLogger->alert($_sLogString);
-//
-//        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
-//        $_aContents = array();
-//        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
-//            $_aContents[] = $_sBuffer;
-//        }
-//        fclose($_rHandle);
-//
-//        $this->assertCount(1,$_aContents);
-//        $this->assertNotEmpty(strpos($_aContents[0],'.ALERT'));
-//
-//        $this->deleteFile(self::TEST_FILE);
-//    }
-//
-//    public function testEmergency()
-//    {
-//        $_sLogString = 'testing';
-//
-//        $_oLogger = $this->createLogger(
-//            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
-//            self::TEST_FILE);
-//
-//        $_oLogger->emergency($_sLogString);
-//
-//        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
-//        $_aContents = array();
-//        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
-//            $_aContents[] = $_sBuffer;
-//        }
-//        fclose($_rHandle);
-//
-//        $this->assertCount(1,$_aContents);
-//        $this->assertNotEmpty(strpos($_aContents[0],'.EMERGENCY'));
-//
-//        $this->deleteFile(self::TEST_FILE);
-//    }
-//
-//    public function testEmerg()
-//    {
-//        $_sLogString = 'testing';
-//
-//        $_oLogger = $this->createLogger(
-//            \Dawen\Logger\VerySimpleLogger::LEVEL_DEBUG,
-//            self::TEST_FILE);
-//
-//        $_oLogger->emerg($_sLogString);
-//
-//        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
-//        $_aContents = array();
-//        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
-//            $_aContents[] = $_sBuffer;
-//        }
-//        fclose($_rHandle);
-//
-//        $this->assertCount(1,$_aContents);
-//        $this->assertNotEmpty(strpos($_aContents[0],'.EMERGENCY'));
-//
-//        $this->deleteFile(self::TEST_FILE);
-//    }
+    public function testAlert()
+    {
+        $_sLogString = 'testing';
+        $_iLevel = \Dawen\Logger\AdvancedLogger::LEVEL_ALERT;
+        $_sLevel = $this->aLevels[$_iLevel];
+
+        $_oLogger = $this->createLogger(
+            \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
+            self::TEST_FILE);
+
+        $_bResult = $_oLogger->alert(
+                        $_sLogString,
+                        $this->aContext,
+                        $this->aExtra);
+
+        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
+        $_aContents = array();
+        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
+            $_aContents[] = $_sBuffer;
+        }
+        fclose($_rHandle);
+
+        $this->assertTrue($_bResult);
+        $this->assertCount(1,$_aContents);
+        $this->assertContains('.'.$_sLevel, $_aContents[0]);
+        $this->assertContains($_sLogString, $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aContext).']', $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aExtra).']', $_aContents[0]);
+
+        $this->deleteFile(self::TEST_FILE);
+    }
+
+    public function testCritical()
+    {
+        $_sLogString = 'testing';
+        $_iLevel = \Dawen\Logger\AdvancedLogger::LEVEL_CRITICAL;
+        $_sLevel = $this->aLevels[$_iLevel];
+
+        $_oLogger = $this->createLogger(
+            \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
+            self::TEST_FILE);
+
+        $_bResult = $_oLogger->critical(
+            $_sLogString,
+            $this->aContext,
+            $this->aExtra);
+
+        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
+        $_aContents = array();
+        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
+            $_aContents[] = $_sBuffer;
+        }
+        fclose($_rHandle);
+
+        $this->assertTrue($_bResult);
+        $this->assertCount(1,$_aContents);
+        $this->assertContains('.'.$_sLevel, $_aContents[0]);
+        $this->assertContains($_sLogString, $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aContext).']', $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aExtra).']', $_aContents[0]);
+
+        $this->deleteFile(self::TEST_FILE);
+    }
+
+    public function testDebug()
+    {
+        $_sLogString = 'testing';
+        $_iLevel = \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG;
+        $_sLevel = $this->aLevels[$_iLevel];
+
+        $_oLogger = $this->createLogger(
+            \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
+            self::TEST_FILE);
+
+        $_bResult = $_oLogger->debug(
+            $_sLogString,
+            $this->aContext,
+            $this->aExtra);
+
+        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
+        $_aContents = array();
+        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
+            $_aContents[] = $_sBuffer;
+        }
+        fclose($_rHandle);
+
+        $this->assertTrue($_bResult);
+        $this->assertCount(1,$_aContents);
+        $this->assertContains('.'.$_sLevel, $_aContents[0]);
+        $this->assertContains($_sLogString, $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aContext).']', $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aExtra).']', $_aContents[0]);
+
+        $this->deleteFile(self::TEST_FILE);
+    }
+
+    public function testError()
+    {
+        $_sLogString = 'testing';
+        $_iLevel = \Dawen\Logger\AdvancedLogger::LEVEL_ERROR;
+        $_sLevel = $this->aLevels[$_iLevel];
+
+        $_oLogger = $this->createLogger(
+            \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
+            self::TEST_FILE);
+
+        $_bResult = $_oLogger->error(
+            $_sLogString,
+            $this->aContext,
+            $this->aExtra);
+
+        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
+        $_aContents = array();
+        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
+            $_aContents[] = $_sBuffer;
+        }
+        fclose($_rHandle);
+
+        $this->assertTrue($_bResult);
+        $this->assertCount(1,$_aContents);
+        $this->assertContains('.'.$_sLevel, $_aContents[0]);
+        $this->assertContains($_sLogString, $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aContext).']', $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aExtra).']', $_aContents[0]);
+
+        $this->deleteFile(self::TEST_FILE);
+    }
+
+    public function testInfo()
+    {
+        $_sLogString = 'testing';
+        $_iLevel = \Dawen\Logger\AdvancedLogger::LEVEL_INFO;
+        $_sLevel = $this->aLevels[$_iLevel];
+
+        $_oLogger = $this->createLogger(
+            \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
+            self::TEST_FILE);
+
+        $_bResult = $_oLogger->info(
+            $_sLogString,
+            $this->aContext,
+            $this->aExtra);
+
+        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
+        $_aContents = array();
+        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
+            $_aContents[] = $_sBuffer;
+        }
+        fclose($_rHandle);
+
+        $this->assertTrue($_bResult);
+        $this->assertCount(1,$_aContents);
+        $this->assertContains('.'.$_sLevel, $_aContents[0]);
+        $this->assertContains($_sLogString, $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aContext).']', $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aExtra).']', $_aContents[0]);
+
+        $this->deleteFile(self::TEST_FILE);
+    }
+
+    public function testNotice()
+    {
+        $_sLogString = 'testing';
+        $_iLevel = \Dawen\Logger\AdvancedLogger::LEVEL_NOTICE;
+        $_sLevel = $this->aLevels[$_iLevel];
+
+        $_oLogger = $this->createLogger(
+            \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
+            self::TEST_FILE);
+
+        $_bResult = $_oLogger->notice(
+            $_sLogString,
+            $this->aContext,
+            $this->aExtra);
+
+        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
+        $_aContents = array();
+        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
+            $_aContents[] = $_sBuffer;
+        }
+        fclose($_rHandle);
+
+        $this->assertTrue($_bResult);
+        $this->assertCount(1,$_aContents);
+        $this->assertContains('.'.$_sLevel, $_aContents[0]);
+        $this->assertContains($_sLogString, $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aContext).']', $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aExtra).']', $_aContents[0]);
+
+        $this->deleteFile(self::TEST_FILE);
+    }
+
+    public function testWarning()
+    {
+        $_sLogString = 'testing';
+        $_iLevel = \Dawen\Logger\AdvancedLogger::LEVEL_WARNING;
+        $_sLevel = $this->aLevels[$_iLevel];
+
+        $_oLogger = $this->createLogger(
+            \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
+            self::TEST_FILE);
+
+        $_bResult = $_oLogger->warning(
+            $_sLogString,
+            $this->aContext,
+            $this->aExtra);
+
+        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
+        $_aContents = array();
+        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
+            $_aContents[] = $_sBuffer;
+        }
+        fclose($_rHandle);
+
+        $this->assertTrue($_bResult);
+        $this->assertCount(1,$_aContents);
+        $this->assertContains('.'.$_sLevel, $_aContents[0]);
+        $this->assertContains($_sLogString, $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aContext).']', $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aExtra).']', $_aContents[0]);
+
+        $this->deleteFile(self::TEST_FILE);
+    }
+
+    public function testEmergency()
+    {
+        $_sLogString = 'testing';
+        $_iLevel = \Dawen\Logger\AdvancedLogger::LEVEL_EMERGENCY;
+        $_sLevel = $this->aLevels[$_iLevel];
+
+        $_oLogger = $this->createLogger(
+            \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
+            self::TEST_FILE);
+
+        $_bResult = $_oLogger->emergency(
+            $_sLogString,
+            $this->aContext,
+            $this->aExtra);
+
+        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
+        $_aContents = array();
+        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
+            $_aContents[] = $_sBuffer;
+        }
+        fclose($_rHandle);
+
+        $this->assertTrue($_bResult);
+        $this->assertCount(1, $_aContents);
+        $this->assertContains('.'.$_sLevel, $_aContents[0]);
+        $this->assertContains($_sLogString, $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aContext).']', $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aExtra).']', $_aContents[0]);
+
+        $this->deleteFile(self::TEST_FILE);
+    }
+
+    public function testEmerg()
+    {
+        $_sLogString = 'testing';
+        $_iLevel = \Dawen\Logger\AdvancedLogger::LEVEL_EMERGENCY;
+        $_sLevel = $this->aLevels[$_iLevel];
+
+        $_oLogger = $this->createLogger(
+            \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
+            self::TEST_FILE);
+
+        $_bResult = $_oLogger->emerg    (
+            $_sLogString,
+            $this->aContext,
+            $this->aExtra);
+
+        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
+        $_aContents = array();
+        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
+            $_aContents[] = $_sBuffer;
+        }
+        fclose($_rHandle);
+
+        $this->assertTrue($_bResult);
+        $this->assertCount(1, $_aContents);
+        $this->assertContains('.'.$_sLevel, $_aContents[0]);
+        $this->assertContains($_sLogString, $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aContext).']', $_aContents[0]);
+        $this->assertContains('['.json_encode($this->aExtra).']', $_aContents[0]);
+
+        $this->deleteFile(self::TEST_FILE);
+    }
+
 }
