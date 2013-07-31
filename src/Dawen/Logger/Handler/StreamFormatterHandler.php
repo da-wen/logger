@@ -4,7 +4,7 @@ namespace Dawen\Logger\Handler;
 use Dawen\Logger\Formatter\LineFormatter;
 use Dawen\Logger\Formatter\FormatterInterface;
 
-class StreamFormatterHandler implements HandlerInterface, HandlerFormatterInterface
+class StreamFormatterHandler implements HandlerFormatterInterface
 {
 
     /**

@@ -3,7 +3,7 @@ namespace Dawen\Logger\Handler;
 
 use Dawen\Logger\Formatter\FormatterInterface;
 
-interface HandlerFormatterInterface
+interface HandlerFormatterInterface extends HandlerInterface
 {
 
     /**

@@ -694,5 +694,26 @@ class ComplexLoggerTest extends \PHPUnit_Framework_TestCase
         $this->deleteFile();
     }
 
+    public function testDebugHandler()
+    {
+        $_oHandler = new \Dawen\Logger\Handler\DebugHandler(\Dawen\Logger\ComplexLogger::LEVEL_DEBUG);
+        $_oLogger = new \Dawen\Logger\ComplexLogger(self::LOGGER_NAME);
+        $_oLogger->setDebugHandler($_oHandler);
+
+        $_sLogString = 'testing';
+
+        $_bLogged = $_oLogger->debug($_sLogString);
+        $this->assertTrue($_bLogged);
+
+        $_aHandler = $_oLogger->getHandler();
+        $this->assertTrue(array_key_exists(\Dawen\Logger\ComplexLogger::DEBUG_HANDLER_KEY, $_aHandler));
+
+        $_oHandler = $_aHandler[\Dawen\Logger\ComplexLogger::DEBUG_HANDLER_KEY];
+        $this->assertInstanceOf('Dawen\Logger\Handler\DebugHandlerInterface', $_oHandler);
+
+        $_aData = $_oHandler->getData();
+        $this->assertEquals(100, $_aData[0]['iLevel']);
+        $this->assertEquals($_sLogString, $_aData[0]['sMessage']);
+    }
 
 }

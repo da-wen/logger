@@ -15,9 +15,16 @@ namespace Dawen\Logger;
 
 use Psr\Log\LoggerInterface;
 use Dawen\Logger\Handler\HandlerInterface;
+use Dawen\Logger\Handler\DebugHandlerInterface;
 
 class ComplexLogger implements LoggerInterface
 {
+
+    /**
+     * array key for debug handler
+     */
+    const DEBUG_HANDLER_KEY = 'debug';
+
     /**
      * datetime format for log entry
      */
@@ -226,6 +233,21 @@ class ComplexLogger implements LoggerInterface
     }
 
     /**
+     * @return DebugHandlerInterface
+     * @throws \Exception
+     */
+    public function getDebugHandler()
+    {
+        if(isset($this->aHandler[self::DEBUG_HANDLER_KEY]))
+        {
+            return $this->aHandler[self::DEBUG_HANDLER_KEY];
+        }
+        else
+        {
+            throw new \Exception('no debug handler set');
+        }
+    }
+    /**
      * get all handlers
      *
      * @return array|HandlerInterface|null
@@ -233,6 +255,16 @@ class ComplexLogger implements LoggerInterface
     public function getHandler()
     {
         return $this->aHandler;
+    }
+
+    /**
+     * sets the debug handler
+     *
+     * @param DebugHandlerInterface $oDebugHandler
+     */
+    public function setDebugHandler(DebugHandlerInterface $oDebugHandler)
+    {
+        $this->aHandler[self::DEBUG_HANDLER_KEY] = $oDebugHandler;
     }
 
     /**
