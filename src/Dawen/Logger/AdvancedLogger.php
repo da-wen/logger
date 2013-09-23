@@ -15,6 +15,7 @@ namespace Dawen\Logger;
 
 use Psr\Log\LoggerInterface;
 use Dawen\Logger\Handler\HandlerInterface;
+use Dawen\Logger\Processor\ProcessorInterface;
 
 class AdvancedLogger implements LoggerInterface
 {
@@ -69,6 +70,11 @@ class AdvancedLogger implements LoggerInterface
      * @var null|HandlerInterface
      */
     private $oHandler = null;
+
+    /**
+     * @var null|ProcessorInterface
+     */
+    private $oProcessor = null;
 
     /**
      * constructor of logger
@@ -246,6 +252,18 @@ class AdvancedLogger implements LoggerInterface
     }
 
     /**
+     * sets the proccessor for this logger
+     *
+     * @param ProcessorInterface $oProcessor
+     *
+     * @return void
+     */
+    public function setProcessor(ProcessorInterface $oProcessor)
+    {
+        $this->oProcessor = $oProcessor;
+    }
+
+    /**
      * writes message to file (appending)
      *
      * @param int $iLevel
@@ -267,6 +285,12 @@ class AdvancedLogger implements LoggerInterface
             'aContext'          => $aContext,
             'aExtra'            => $aExtra
         );
+
+        //execute processor if set
+        if(null !== $this->oProcessor)
+        {
+            $_aEntry = $this->oProcessor->execute($_aEntry);
+        }
 
         return $this->oHandler->handle($_aEntry);
     }

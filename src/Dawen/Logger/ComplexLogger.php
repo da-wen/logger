@@ -13,6 +13,7 @@
 
 namespace Dawen\Logger;
 
+use Dawen\Logger\Processor\ProcessorInterface;
 use Psr\Log\LoggerInterface;
 use Dawen\Logger\Handler\HandlerInterface;
 use Dawen\Logger\Handler\DebugHandlerInterface;
@@ -73,9 +74,14 @@ class ComplexLogger implements LoggerInterface
     private $sName = null;
 
     /**
-     * @var null|HandlerInterface
+     * @var array
      */
     private $aHandler = array();
+
+    /**
+     * @var array
+     */
+    private $aProcessor = array();
 
     /**
      * constructor of logger
@@ -268,13 +274,23 @@ class ComplexLogger implements LoggerInterface
     }
 
     /**
-     * sets handler
+     * adds another handler
      *
      * @param HandlerInterface $oHandler
      */
-    public function setHandler(HandlerInterface $oHandler)
+    public function addHandler(HandlerInterface $oHandler)
     {
         $this->aHandler[] = $oHandler;
+    }
+
+    /**
+     * adds another processor
+     *
+     * @param ProcessorInterface $oProcessor
+     */
+    public function addProcessor(ProcessorInterface $oProcessor)
+    {
+        $this->aProcessor[] = $oProcessor;
     }
 
     /**
@@ -303,6 +319,15 @@ class ComplexLogger implements LoggerInterface
                 'aContext'          => $aContext,
                 'aExtra'            => $aExtra
             );
+
+            /** @var ProcessorInterface $_oProcessor */
+            if(!empty($this->aProcessor))
+            {
+                foreach($this->aProcessor as $_oProcessor)
+                {
+                    $_aEntry = $_oProcessor->execute($_aEntry);
+                }
+            }
 
             /** @var HandlerInterface $_oHandler */
             foreach($this->aHandler as $_oHandler)

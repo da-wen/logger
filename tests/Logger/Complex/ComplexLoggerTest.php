@@ -42,8 +42,8 @@ class ComplexLoggerTest extends \PHPUnit_Framework_TestCase
         $_oHandler1 = new \Dawen\Logger\Handler\StreamHandler($iLogLevel,$_sFilePath1);
         $_oHandler2 = new \Dawen\Logger\Handler\StreamFormatterHandler($iLogLevel,$_sFilePath2);
         $_oLogger = new \Dawen\Logger\ComplexLogger(self::LOGGER_NAME, $sTimeStampFormat);
-        $_oLogger->setHandler($_oHandler1);
-        $_oLogger->setHandler($_oHandler2);
+        $_oLogger->addHandler($_oHandler1);
+        $_oLogger->addHandler($_oHandler2);
 
         return $_oLogger;
     }
@@ -714,6 +714,39 @@ class ComplexLoggerTest extends \PHPUnit_Framework_TestCase
         $_aData = $_oHandler->getData();
         $this->assertEquals(100, $_aData[0]['iLevel']);
         $this->assertEquals($_sLogString, $_aData[0]['sMessage']);
+    }
+
+    public function testProcessor()
+    {
+        $_sLogString = 'testing';
+        $_iLevel = \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG;
+        $_sLevel = $this->aLevels[$_iLevel];
+
+        $_oLogger = $this->createLogger(
+            \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG);
+
+        $_oLogger->addProcessor(new \Dawen\Logger\Processor\ProcessIdProcessor());
+
+        $_bResult = $_oLogger->debug(
+            $_sLogString,
+            $this->aContext,
+            $this->aExtra);
+
+        // file 1
+        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE_1, "r");
+        $_aContents1 = array();
+        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
+            $_aContents1[] = $_sBuffer;
+        }
+        fclose($_rHandle);
+
+        $this->assertTrue($_bResult);
+
+        $this->assertCount(1,$_aContents1);
+        $this->assertContains('iProcessId', $_aContents1[0]);
+        $this->assertContains('iProcessId', $_aContents1[0]);
+
+        $this->deleteFile();
     }
 
 }

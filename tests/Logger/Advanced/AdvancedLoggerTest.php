@@ -500,4 +500,36 @@ class AdvancedLoggerTest extends \PHPUnit_Framework_TestCase
         $this->deleteFile(self::TEST_FILE);
     }
 
+    public function testProcessor()
+    {
+
+        $_sLogString = 'testing';
+        $_iLevel = \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG;
+        $_sLevel = $this->aLevels[$_iLevel];
+
+        $_oLogger = $this->createLogger(
+            \Dawen\Logger\AdvancedLogger::LEVEL_DEBUG,
+            self::TEST_FILE);
+
+        $_oProcessor = new \Dawen\Logger\Processor\ProcessIdProcessor();
+        $_oLogger->setProcessor($_oProcessor);
+
+        $_bResult = $_oLogger->debug(
+            $_sLogString,
+            $this->aContext,
+            $this->aExtra);
+
+        $_rHandle = fopen(self::TEST_PATH.self::TEST_FILE, "r");
+        $_aContents = array();
+        while (($_sBuffer = fgets($_rHandle, 4096)) !== false) {
+            $_aContents[] = $_sBuffer;
+        }
+        fclose($_rHandle);
+
+        $this->assertTrue($_bResult);
+        $this->assertContains('iProcessId', $_aContents[0]);
+
+        $this->deleteFile(self::TEST_FILE);
+    }
+
 }
