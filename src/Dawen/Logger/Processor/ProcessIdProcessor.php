@@ -12,12 +12,16 @@ namespace Dawen\Logger\Processor;
 class ProcessIdProcessor implements ProcessorInterface
 {
 
-    /** @var int|null  */
-    private $iProcessId = null;
+    /**
+     * don't worry. a static var is much faster
+     *
+     * @var null
+     */
+    private static $iProcessId = null;
 
     public function __construct()
     {
-        $this->iProcessId = getmypid();
+        static::$iProcessId = getmypid();
     }
 
     /**
@@ -28,7 +32,7 @@ class ProcessIdProcessor implements ProcessorInterface
      */
     public function execute(array $aEntry)
     {
-        $aEntry['aExtra']['iProcessId'] = $this->iProcessId;
+        $aEntry['aExtra']['iProcessId'] = static::$iProcessId;
 
         return $aEntry;
     }
