@@ -17,14 +17,14 @@ class StreamHandler implements HandlerInterface
     private $iLogLevel;
 
     /**
-     * file path and name for yout log file
+     * file path and name for your log file
      *
      * @var string
      */
     private $sFilePath = null;
 
     /**
-     * dateformat for log entry
+     * date format for log entry
      *
      * @var string
      */
@@ -81,8 +81,6 @@ class StreamHandler implements HandlerInterface
      */
     private function format(array $aEntry)
     {
-        $_oDate = new \DateTime();
-
         $_sLine = '['.$aEntry['sTimestamp'].'] '.$aEntry['sLoggerName'].'.'.$aEntry['sLevel'].': ';
         $_sLine .= $aEntry['sMessage'];
         $_sContext = '';

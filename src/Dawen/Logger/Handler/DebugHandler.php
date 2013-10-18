@@ -17,7 +17,7 @@ class DebugHandler implements DebugHandlerInterface
     private $iLogLevel;
 
     /**
-     * dateformat for log entry
+     * date format for log entry
      *
      * @var string
      */

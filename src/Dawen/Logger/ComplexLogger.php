@@ -1,8 +1,8 @@
 <?php
 /**
- * everything with opcache (Zend_Optimizer)
+ * everything with op cache (Zend_Optimizer)
  *
- * tested with seperate isHandling function, without Formatter object
+ * tested with separate isHandling function, without Formatter object
  * time for 500 = 0.0043s - 0.0046s
  * time for 1 = 0.00086s
  *
@@ -60,7 +60,7 @@ class ComplexLogger implements LoggerInterface
     );
 
     /**
-     * dateformat for log entry
+     * date format for log entry
      *
      * @var string
      */
@@ -87,7 +87,6 @@ class ComplexLogger implements LoggerInterface
      * constructor of logger
      *
      * @param string $sName
-     * @param string $sFilePath
      * @param null|string $sDateTimeFormat
      */
     public function __construct($sName,$sDateTimeFormat = null)
@@ -99,15 +98,15 @@ class ComplexLogger implements LoggerInterface
     /**
      * Logs with an arbitrary level.
      *
-     * @param mixed $ievel
+     * @param mixed $iLevel
      * @param string $sMessage
      * @param array $aContext
      * @param array $aExtra
      * @return bool|null
      */
-    public function log($ievel, $sMessage, array $aContext = array(), array $aExtra = array())
+    public function log($iLevel, $sMessage, array $aContext = array(), array $aExtra = array())
     {
-        return $this->writeEntry($ievel, $sMessage, $aContext, $aExtra);
+        return $this->writeEntry($iLevel, $sMessage, $aContext, $aExtra);
     }
 
     /**
@@ -300,6 +299,7 @@ class ComplexLogger implements LoggerInterface
      * @param string $sMessage
      * @param array $aContext
      * @param array $aExtra
+     * @throws \Exception
      * @return bool
      */
     private function writeEntry($iLevel, $sMessage, array $aContext = array(), array $aExtra = array())
@@ -339,7 +339,6 @@ class ComplexLogger implements LoggerInterface
         }
 
         throw new \Exception('no handler set');
-        return false;
 
     }
 }

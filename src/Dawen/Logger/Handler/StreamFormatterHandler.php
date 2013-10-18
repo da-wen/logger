@@ -20,7 +20,7 @@ class StreamFormatterHandler implements HandlerFormatterInterface
     private $iLogLevel;
 
     /**
-     * file path and name for yout log file
+     * file path and name for your log file
      *
      * @var string
      */

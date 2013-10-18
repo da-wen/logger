@@ -29,7 +29,7 @@ class VerySimplePsrLogger extends AbstractLogger
 
 
     /**
-     * dateformat for log entry
+     * date format for log entry
      *
      * @var string
      */
@@ -50,9 +50,9 @@ class VerySimplePsrLogger extends AbstractLogger
     private $sName = null;
 
     /**
-     * file path and name for yout log file
+     * file path and name for your log file
      *
-     * @var srtring
+     * @var string
      */
     private $sFilePath = null;
 
@@ -68,6 +68,7 @@ class VerySimplePsrLogger extends AbstractLogger
      * constructor of logger
      *
      * @param string $sName
+     * @param int $iLogLevel
      * @param string $sFilePath
      * @param null|string $sDateTimeFormat
      */
